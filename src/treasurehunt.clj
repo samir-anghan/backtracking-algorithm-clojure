@@ -14,26 +14,28 @@
 (def goalFound false)
 
 (defn CountRowsFn []
-      (with-open [rdr (reader "map1.txt")]
+      (with-open [rdr (reader "map.txt")]
         (def noOfRows (count (line-seq rdr)))))
 
 (defn CountColumnsFn []
-      (with-open [rdr (reader "map1.txt")]
+      (with-open [rdr (reader "map.txt")]
         (doseq [line (line-seq rdr)]
           (def noOfColumns (count line))
           )))
 
 (defn ReadCharactersFromFileFn []
-      (with-open [rdr (reader "map1.txt")]
+      (with-open [rdr (reader "map.txt")]
         (doseq [line (line-seq rdr)]
           (doseq [character line]
             (def charactersVec (conj charactersVec character))
             ))))
 
 (defn ReadFileAsStringFn []
-      (def fileContent (slurp "map1.txt"))
+      (def fileContent (slurp "map.txt"))
       (println "This is my challenge:")
+      (println "")
       (println fileContent)
+      (println "")
       )
 
 (defn MapToArrayFn []
@@ -47,7 +49,6 @@
 (defn GetGoalCoordinatesFn []
       (doseq [x (range noOfRows)
               y (range noOfColumns)]
-        ;(println (aget mazeArray x y))
         (let [character (aget mazeArray x y)]
           (if (= (str character) goalCharacter)
             (do
@@ -86,6 +87,7 @@
         (do
           (aset maze i j \+)
           (println "Woo hoo, I found the treasure :-)")
+          (println "")
           (def goalFound true)
           (doseq [x (range noOfRows)
                   y (range noOfColumns)]
@@ -135,7 +137,10 @@
       (GetGoalCoordinatesFn)
       (SolveMazeUtilFn mazeArray x y)
       (if (= false goalFound)
-        (println "Uh oh, I could not find the treasure :-(")
+        (do
+          (println "")
+          (println "Uh oh, I could not find the treasure :-(")
+          )
         )
       )
 
