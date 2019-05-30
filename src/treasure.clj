@@ -5,164 +5,118 @@
 (def noOfColumns)
 (def charactersVec [])
 (def mazeArray)
-(def solMazeArray)
 (def index 0)
 (def goalX)
 (def goalY)
 (def goalCharacter "@")
 (def x 0)
 (def y 0)
+(def goalFound false)
+(def charsInLine 0)
+(def isValidMap true)
 
 (defn CountRowsFn []
-      (with-open [rdr (reader "map.txt")]
+      (with-open [rdr (reader "map2.txt")]
         (def noOfRows (count (line-seq rdr)))))
 
 (defn CountColumnsFn []
-      (with-open [rdr (reader "map.txt")]
+      (with-open [rdr (reader "map2.txt")]
         (doseq [line (line-seq rdr)]
-          (def noOfColumns (count line))
-          )))
+          (def noOfColumns (count line)))))
 
-(defn ReadCharactersFromFileFn []
-      (with-open [rdr (reader "map.txt")]
+(defn SetCharactersVectorFn []
+      (with-open [rdr (reader "map2.txt")]
         (doseq [line (line-seq rdr)]
           (doseq [character line]
-            ;(println character)
-            (def charactersVec (conj charactersVec character))
-            ))))
+            (def charactersVec (conj charactersVec character))))))
 
-(defn ReadFileAsStringFn []
-      (def fileContent (slurp "map.txt"))
-      (println fileContent))
-
-;(defn MapToArrayFn []
-;      (let [mazeArray (make-array Character/TYPE noOfRows noOfColumns)]
-;        (time (dotimes [i noOfRows]
-;                (dotimes [j noOfColumns]
-;                  (aset mazeArray i j (get charactersVec index))
-;                  (def index (+ index 1))
-;                  )))
-;        (print mazeArray)
-;        ))
+(defn ValidateMapFn []
+      (with-open [rdr (reader "map2.txt")]
+        (doseq [line (line-seq rdr)]
+          (def charsInLine (count line))
+            (if (not= charsInLine noOfColumns)
+              (def isValidMap false)))))
 
 (defn MapToArrayFn []
       (def mazeArray (make-array Character/TYPE noOfRows noOfColumns))
-      (def solMazeArray (make-array Character/TYPE noOfRows noOfColumns))
       (doseq [x (range noOfRows)
               y (range noOfColumns)]
         (let [character (get charactersVec index)]
           (aset mazeArray x y character))
         (def index (+ index 1))))
 
-(defn RetriveGoalCoordinatesFn []
-      (println "____________________")
-      (println goalCharacter)
+(defn GetGoalCoordinatesFn []
       (doseq [x (range noOfRows)
               y (range noOfColumns)]
-        ;(println (aget mazeArray x y))
         (let [character (aget mazeArray x y)]
           (if (= (str character) goalCharacter)
-             (do
-               (def goalX x)
-               (def goalY y)
-               )
-             )
-
-          )
-        )
-      )
-
-(defn copyMazeToSolFn []
-        (doseq [x (range noOfRows)
-                y (range noOfColumns)]
-          (aset-char solMazeArray x y (aget mazeArray x y))
-        )
-      )
+            (do
+              (def goalX x)
+              (def goalY y))))))
 
 (defn isSafeFn [maze x y]
-      (let [character (aget maze x y)]
-        (if (and  (< x noOfRows) (< y noOfColumns))
-          (do
+      (if (and (< x noOfRows) (>= x 0) (>= y 0) (< y noOfColumns))
+        (do
+          (let [character (aget maze x y)]
             (if (= (str character) "-")
-              true
-              false
-              )
-            )
-          false
-          )
-      )
-      )
+              true)))))
 
-
-(defn solveMazeUtilFn [maze i j sol]
-
-      ;if (x, y is goal) return true
-      (if (and (== i goalX) (== j goalY))
-        (do
-          (aset-char sol i j \+)
-          (println "Found goal")
-           true
-          )
-        )
-
-
-      (if (isSafeFn maze i j)
-        (do
-          (aset-char sol i j \+)
-
-          ;Move forward in x direction
-          (if (solveMazeUtilFn maze (+ i 1) j sol)
-            true
-            )
-
-          ;If moving in x direction doesn't give solution then Move down in y direction
-          (if (solveMazeUtilFn maze i (+ j 1) sol)
-            true
-            )
-
-          ;If none of the above movements works then BACKTRACK: unmark x, y as part of solution path
-          (aset-char sol i j \!)
-          false
-          )
-        )
-      ;(aset-char sol i j \0)
-      false
-      )
-
-
-(defn printSolutionMazeFn []
+(defn PrintMazeFn []
+      (println "")
       (doseq [x (range noOfRows)
               y (range noOfColumns)]
-        (print (aget solMazeArray x y))
+        (print (aget mazeArray x y))
 
         (if (= y (- noOfColumns 1))
-          (println "")
-          )
-        )
-      )
+          (println "")))
+      (println ""))
+
+(defn SolveMazeUtilFn [maze i j]
+
+      ;if (x, y is goal) return true
+      (if (and (= i goalX) (= j goalY))
+        (do
+          (println "Woo hoo, I found the treasure :-)")
+          (def goalFound true)
+          (PrintMazeFn)
+          (System/exit 0)))
+
+      ;Move forward in each direction and recursively check if this move leads to a solution
+      (if (= true (isSafeFn maze i j))
+        (do
+          (aset maze i j \+)
+          (SolveMazeUtilFn maze (+ i 1) j)
+          (SolveMazeUtilFn maze i (+ j 1))
+          (SolveMazeUtilFn maze (- i 1) j)
+          (SolveMazeUtilFn maze i (- j 1))
+          (aset maze i j \!)
+          false
+          )))
 
 (defn MainFn []
-      (ReadFileAsStringFn)
       (CountRowsFn)
       (CountColumnsFn)
-      (println noOfRows)
-      (println noOfColumns)
-      (ReadCharactersFromFileFn)
-      (MapToArrayFn)
-      (RetriveGoalCoordinatesFn)
-      (println goalX)
-      (println goalY)
-      (copyMazeToSolFn)
-      ;(if (solveMazeUtilFn mazeArray x y solMazeArray)
-      ;  (do
-      ;    (printSolutionMazeFn)
-      ;    )
-      ;  (do
-      ;    (println "Solution not exits")
-      ;    )
-      ;  )
-      (solveMazeUtilFn mazeArray x y solMazeArray)
-      (printSolutionMazeFn)
-      )
+      (SetCharactersVectorFn)
+      (ValidateMapFn)
+      
+      (if (= true isValidMap)
+        (do
+          (MapToArrayFn)
+          (GetGoalCoordinatesFn))
+        (do
+          (println "@")
+          (println "@ FEEDBACK: Does not appear to be a valid map file !!! Try again with a different map file.")
+          (println "@")
+          (System/exit 0)))
+
+      (println "This is my challenge:")
+      (PrintMazeFn)
+
+      (SolveMazeUtilFn mazeArray x y)
+
+      (if (= false goalFound)
+        (do
+          (println "Uh oh, I could not find the treasure :-(")
+          (PrintMazeFn))))
 
 (MainFn)
